@@ -1,5 +1,20 @@
 # Contributing
 
+## Setup
+
+```bash
+git clone https://github.com/room101-dev/signLang-rm2ah.git
+cd signLang-rm2ah
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+`requirements.txt` contains the Python packages needed by the scripts. System
+pieces are separate: `aplay` (ALSA) for Piper output, optional `espeak-ng` /
+`espeak` fallback, serial-port access, and a local Piper voice model. A
+`.venv/` created by the commands above is ignored and must not be committed.
+
 Thanks for helping improve `signLang-rm2ah`.
 
 ## Safety first
