@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# gest-loop2.sh -- gesture first, then ask. Optional spoken label for training.
+# gest-loop4.sh -- gesture first, hold, ask, then wait before the next letter.
 #
-#   ./gest-loop2.sh              # alphabetical, reads-well letters first
-#   ./gest-loop2.sh --random     # shuffled each pass
-#   ./gest-loop2.sh --once       # one pass, exit
-#   ./gest-loop2.sh --hint       # append "This is letter X." to the question
-#   ./gest-loop2.sh a b c        # explicit list
-#   ./gest-loop2.sh --speed 4 --hold 3 --gap 8
+#   ./gest-loop4.sh              # alphabetical, reads-well letters first
+#   ./gest-loop4.sh --random     # shuffled each pass
+#   ./gest-loop4.sh --once       # one pass, exit
+#   ./gest-loop4.sh --hint       # append "This is letter X." to the question
+#   ./gest-loop4.sh a b c        # explicit list
+#   ./gest-loop4.sh --speed 4 --hold 2 --gap 8
 #
-# Per letter: make the gesture, wait --hold, speak the question (with the
-# label appended when --hint), then wait --gap. Ctrl-C kills the in-flight
-# child, opens the hand, exits 130.
+# Per letter: make the gesture, hold --hold, speak the question (label
+# appended when --hint), then wait --gap. gest-loop3.sh plus a tunable --gap.
+# Ctrl-C kills the in-flight child, opens the hand, exits 130.
 
 set -u
 

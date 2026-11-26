@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# gest-loop2.sh -- gesture first, then ask. Optional spoken label for training.
+# gest-loop3.sh -- gesture first, then ask. Optional spoken label for training.
 #
-#   ./gest-loop2.sh              # alphabetical, reads-well letters first
-#   ./gest-loop2.sh --random     # shuffled each pass
-#   ./gest-loop2.sh --once       # one pass, exit
-#   ./gest-loop2.sh --hint       # append "This is letter X." to the question
-#   ./gest-loop2.sh a b c        # explicit list
-#   ./gest-loop2.sh --speed 3 --hold 2
+#   ./gest-loop3.sh              # alphabetical, reads-well letters first
+#   ./gest-loop3.sh --random     # shuffled each pass
+#   ./gest-loop3.sh --once       # one pass, exit
+#   ./gest-loop3.sh --hint       # append "This is letter X." to the question
+#   ./gest-loop3.sh a b c        # explicit list
+#   ./gest-loop3.sh --speed 3 --hold 2
 #
-# Per letter: make the gesture, then speak the question (with the label
-# appended when --hint). Ctrl-C kills the in-flight child, opens the hand.
+# Per letter: make the gesture, hold it longer (default 3s), then speak the
+# question, with the label appended when --hint. No --gap: the next gesture
+# starts as soon as the question finishes. Ctrl-C kills the in-flight child
+# and opens the hand.
 
 set -u
 
@@ -32,7 +34,7 @@ DEFAULT_ORDER=(
   D F O
 )
 
-usage() { sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
