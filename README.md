@@ -27,6 +27,10 @@ robot (Reachy Mini) to guess.
 
 The existing `~/robot/talk/venv` environment has the needed Python packages:
 
+Running linux, I am running on a chrome-book linux box, usb to AH controller; The chromebook is talking, asks the 'reachy mini' "what do you see?", then the AH forms a sign; Now the RM is really dumb, so I added the --hint arg, so it tells it what its seeing, so it can 'learn' the signs;
+
+Newer versions will be in this folder, gest-loop2.sh, loop4.sh,  with newer args
+
 ```bash
 source ~/robot/talk/venv/bin/activate
 ```
