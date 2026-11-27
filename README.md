@@ -119,3 +119,5 @@ Voice files are intentionally not tracked in this repository.
   rotation. Pass them explicitly to include them, e.g. `./gest-loop4.sh P Q R`.
 - A file lock at `/tmp/opencode/amazinghand.lock` prevents two `make-gest.py`
   processes from fighting over the hand.
+
+![Reachy Mini ASL Fingerspelling](https://raw.githubusercontent.com/room101-dev/signLang-rm2ah/master/signLang-AH2RM.jpg)   
