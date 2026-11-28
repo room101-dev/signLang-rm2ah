@@ -1,5 +1,7 @@
 # signLang-rm2ah
 
+**Version 2.0** — major revision of the first build (`old/`).
+
 Sign-language fingerspelling training for a left AmazingHand (AH) teaching a
 Reachy Mini (RM). The AH forms each letter while the loop speaks the prompt and
 the correct label; the RM learns the mapping from label to pose.

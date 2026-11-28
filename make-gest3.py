@@ -44,6 +44,8 @@ DEG_PER_STEP = 300.0 / 1024.0
 RAD_PER_STEP = math.radians(300.0) / 1024.0
 CENTER = 511
 
+__version__ = "2.0"
+
 POSES = {
     # order: Index1, Index2, Middle1, Middle2, Ring1, Ring2, Thumb1, Thumb2
     # AH has no pinky servos -- Pk1/Pk2 from matrix 2 are dropped here.
@@ -322,6 +324,8 @@ def acquire_lock():
 def main():
     ap = argparse.ArgumentParser(
         description="Drive the left AmazingHand into a fingerspelling letter.")
+    ap.add_argument("--version", action="version",
+                    version=f"%(prog)s {__version__}")
     ap.add_argument("letter", nargs="?",
                     help="A-Z (I, J, Y are approximations) or 'open'")
     ap.add_argument("-v", "--verbose", action="count", default=0,
