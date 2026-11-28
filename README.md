@@ -1,10 +1,11 @@
 # signLang-rm2ah
 
-Sign Language Training engine, Amazing hand (pollen) Teaches the Reachy Mini how to Sign.
+Sign-language fingerspelling training for a left AmazingHand (AH) teaching a
+Reachy Mini (RM). The AH forms each letter while the loop speaks the prompt and
+the correct label; the RM learns the mapping from label to pose.
 
-Fingerspelling demo for a **left AmazingHand**: pose the hand into individual
-letters, speak a prompt with Piper TTS, and loop through the alphabet for a
-robot (Reachy Mini) to guess.
+Run this on the laptop connected to the AH and the Pi-4, not on the
+development server.
 
 > **Hardware warning:** these scripts move real servos and leave torque enabled
 > when they exit. Keep hands clear of the hand, and be ready to cut power.
@@ -14,19 +15,20 @@ robot (Reachy Mini) to guess.
 
 | File | Purpose |
 | --- | --- |
-| `make-gest.py` | Drive left-hand servos 11–18 into a fingerspelling pose via `rustypot` (serial `/dev/ttyACM0`, 1,000,000 baud). `--list` prints the table; `--dry` prints angles without touching hardware. |
+| `make-gest3.py` | Current driver for left-hand servos 11–18 via `rustypot` (`/dev/ttyACM0`, 1,000,000 baud). 26 letters, 8 values per pose. `--list` prints the table; `--dry` prints angles without touching hardware. |
 | `say.py` | One-shot or stdin-driven Piper TTS piped to `aplay`. |
-| `gesture-loop.sh` | Original loop: ask first, then pose, then wait. No `--hint`. |
-| `gest-loop2.sh` | Ask, pose, wait, then speak the label with `--hint`. |
-| `gest-loop3.sh` | Pose, hold, ask with the label appended inline; no gap. |
-| `gest-loop4.sh` | Pose, hold, ask, then wait `--gap` before the next letter. |
+| `gest-loop6.sh` | Training loop: pose, hold, speak prompt (optional label), wait, next letter. |
+| `als-sign-matrix.md` | Letter descriptions, servo map, and the Python pose matrix. |
+| `als-sign-array.md` | Array form of the pose data. |
+| `old/` | Earlier drivers and loop revisions. |
+
+Python files are not executable; always invoke them with `python3`.
 
 ## Requirements
 
 - Python 3
-- `rustypot` (for the servo controller)
-- `piper-tts` and `aplay` (ALSA) for speech; `espeak-ng` / `espeak` is an optional
-  fallback in all four loop scripts
+- `rustypot` (servo controller)
+- `piper-tts` and `aplay` (ALSA) for speech; `espeak-ng` / `espeak` is a fallback
 - An AmazingHand on `/dev/ttyACM0` (user must have serial-port access)
 
 The existing `~/robot/talk/venv` environment has the needed Python packages:
@@ -35,65 +37,49 @@ The existing `~/robot/talk/venv` environment has the needed Python packages:
 source ~/robot/talk/venv/bin/activate
 ```
 
-I am running Linux on a Chromebook, with USB serial to the AmazingHand
-controller. The Chromebook talks and asks the Reachy Mini "what do you see?",
-then the hand forms a sign. The RM is really dumb, so `--hint` was added: the
-correct label is spoken too, so it can learn the signs.
-
-The four loops are successive revisions of the same drill; see "Choosing a loop"
-below.
+The Chromebook talks over USB serial to the AH controller and speaks the prompt
+and label so the RM can learn each sign.
 
 ## Quick start
 
 ```bash
-# Inspect the letter table and a dry run (no hardware touched)
-./make-gest.py --list
-./make-gest.py a --dry
+# Inspect the table and dry-run a letter (no hardware touched)
+python3 make-gest3.py --list
+python3 make-gest3.py a --dry
 
 # Move the real hand
-./make-gest.py open
-./make-gest.py a --speed 4 --hold 1.5
+python3 make-gest3.py open
+python3 make-gest3.py a --speed 4 --hold 1.5
 
 # Speak a line
 python3 say.py "what letter is this hand gesture?"
 
-# One full pass of the alphabet, then exit
-./gesture-loop.sh --once
+# One full pass, then exit
+bash gest-loop6.sh --once
 
 # Endless shuffled loop, custom timing and prompt
-./gesture-loop.sh --random --speed 3 --hold 2 --gap 6 \
+bash gest-loop6.sh --random --speed 3 --hold 2 --gap 6 \
   --prompt "reachy mini, what letter is this?"
 
-# Gesture first, label in the question, then 8s for the robot to answer
-./gest-loop4.sh --hint --gap 8
+# Gesture first, label in the question, then 8s before the next letter
+bash gest-loop6.sh --hint --gap 8
 ```
 
-Run `./<script>.sh --help` for all options.
+Run `bash gest-loop6.sh --help` for all options.
 
-## Choosing a loop
+## Loop options
 
-All four loops use the same default letter order — readable letters first, then
-thumb-dependent ones, then the shaky ones — and share `--random`, `--once`,
-`--speed`, `--hold`, `--prompt`, and an explicit list of letters where
-supported. What changed between revisions is **when the question is spoken**,
-**where the training label goes**, and **how Ctrl-C is handled**:
-
-| Script | Per-letter sequence | `--hint` | Timing knobs |
-| --- | --- | --- | --- |
-| `gesture-loop.sh` | ask → 0.3s → pose → wait | not supported | `--hold`, `--gap` |
-| `gest-loop2.sh` | ask → 0.3s → pose → wait → label | separate line after the gap: "This is letter X." | `--hold`, `--gap` |
-| `gest-loop3.sh` | pose (3s hold) → ask → next | appended to the question: "…What letter is this hand gesture? This is letter X." | `--hold` only (no `--gap`) |
-| `gest-loop4.sh` | pose (2s hold) → ask → wait → next | appended to the question | `--hold`, `--gap` (default 8s) |
-
-`gest-loop2.sh` also respelled the prompt as "reach-ee mini" so Piper
-pronounces the name correctly, and replaced the simple `trap open_hand` with a
-cleanup that kills the in-flight child and its `aplay` subprocess before
-opening the hand, exiting 130 on Ctrl-C. Loops 3 and 4 keep that cleanup.
-
-In short: use `gesture-loop.sh` for the original ask-then-pose demo,
-`gest-loop2.sh` for question-then-correction training, `gest-loop3.sh` for a
-fast pose-visible drill, and `gest-loop4.sh` when you want the robot to have
-time to answer before the next gesture.
+| Option | Effect |
+| --- | --- |
+| `--random`, `-r` | Shuffle letters each pass |
+| `--once`, `-1` | One pass, then exit |
+| `--hint`, `-H` | Append "This is letter X." to the prompt |
+| `-v`, `--verbose` | Servo table and bus readback per letter |
+| `--speed` | Servo speed (rad/s) |
+| `--hold` | Seconds the pose is held |
+| `--gap` | Seconds after the prompt before the next letter |
+| `--prompt` | Override the spoken prompt |
+| `a b c` | Explicit letter list instead of the alphabet |
 
 ## Voice model
 
@@ -106,18 +92,14 @@ time to answer before the next gesture.
 
 Voice files are intentionally not tracked in this repository.
 
-## Notes and known limitations
+## Notes
 
-- Supported letters: A–H, K–L, M–O, P–S, T–W, X, Z (23 poses, 19 distinct shapes).
-- `I`, `J`, and `Y` are omitted — they need a pinky.
-- `P` = `K`, `Q` = `G`, `Z` = `G`, and `U` = `H` until wrist/index motion is added;
-  `R` is an approximation.
-- `MIDDLE_POS` in `make-gest.py` is the author's placeholder offsets. Real
+- All 26 letters are defined in `make-gest3.py`. AH has no pinky servo, so
+  I/J/Y are approximations; J and Z also need motion that a static pose cannot
+  express.
+- `MIDDLE_POS` in `make-gest3.py` is the author's placeholder offsets. Real
   offsets must be measured (`get_zeros`) before poses are accurate; clamping is
   expected until then.
-- The loops default to 20 of the 23 letters: `P`, `Q` and `R` are left out of the
-  rotation. Pass them explicitly to include them, e.g. `./gest-loop4.sh P Q R`.
-- A file lock at `/tmp/opencode/amazinghand.lock` prevents two `make-gest.py`
+- A file lock at `/tmp/opencode/amazinghand.lock` prevents two `make-gest3.py`
   processes from fighting over the hand.
-
-![Reachy Mini ASL Fingerspelling](https://raw.githubusercontent.com/room101-dev/signLang-rm2ah/master/signLang-AH2RM.jpg)   
+- Ctrl-C kills the in-flight child, opens the hand, and exits 130.
